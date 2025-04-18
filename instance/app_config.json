@@ -1,0 +1,15 @@
+{
+  "DEBUG": true,
+  "SECRET_KEY": "iomumzsLsTeUd3KSy12xHPuBVCM12hpXWuGusdtpwhkUthsysg86p43vyHib4Mt3ZYDFEF3bDDmd6gBeh4evkLv",
+  "DATABASE_URL": "postgresql://neondb_owner:npg_4fkpqTbhVvK0@ep-polished-moon-a52ygqv0.us-east-2.aws.neon.tech/neondb?sslmode=require",
+  "ADMIN_ACCESS_TOKEN": "TOKEN_123",
+  "ENABLE_ADMIN_TOKEN": true,
+  "BOT_TOKEN": "7649112744:AAEmRzq86QIGGMQcsNXJldvv1f1sBl-ri8Y",
+  "BOT_USERNAME": "@OVOCOINAIRDROP_bot",
+  "ADMIN_USER_IDS": "7134271831",
+  "SOLANA_RPC": "https://api.mainnet-beta.solana.com",
+  "SPL_TOKEN_MINT": "7d7jZLzHHefeSDqJj9EJhTrA1Ujmsb3saxs5vPdtpump",
+  "SPL_TOKEN_AMOUNT": 1200,
+  "SPL_TOKEN_DECIMALS": 6,
+  "SENDER_SECRET_KEY": "203,61,17,78,125"
+}

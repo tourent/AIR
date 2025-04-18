@@ -1,0 +1,299 @@
+{% extends "layout.html" %}
+
+{% block title %}Airdrops - Admin - Solana Airdrop Bot{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-rocket-takeoff"></i> Airdrops</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAirdropModal">
+            <i class="bi bi-plus-circle"></i> New Airdrop
+        </button>
+    </div>
+    
+    {% if airdrops %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Airdrop History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Token</th>
+                                <th>Amount</th>
+                                <th>Started By</th>
+                                <th>Transactions</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for airdrop in airdrops %}
+                                <tr>
+                                    <td>{{ airdrop.id }}</td>
+                                    <td>{{ airdrop.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td title="{{ airdrop.token_mint }}">{{ airdrop.token_mint[:8] }}...</td>
+                                    <td>{{ airdrop.token_amount }}</td>
+                                    <td>Admin</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ airdrop.success_count }} success</span>
+                                        <span class="badge bg-danger">{{ airdrop.failure_count }} failed</span>
+                                        <span class="badge bg-warning">{{ airdrop.pending_count }} pending</span>
+                                    </td>
+                                    <td>
+                                        {% if airdrop.pending_count > 0 %}
+                                            <span class="badge bg-warning">In Progress</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#airdropDetailsModal" 
+                                                data-airdrop-id="{{ airdrop.id }}">
+                                            Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-rocket-takeoff display-1 text-muted"></i>
+                <h3 class="mt-4">No Airdrops Yet</h3>
+                <p class="text-muted">You haven't conducted any airdrops yet.</p>
+                <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#newAirdropModal">
+                    <i class="bi bi-plus-circle"></i> Start Your First Airdrop
+                </button>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Airdrop Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Current Configuration</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Token Mint
+                            <span class="badge bg-primary">{{ SPL_TOKEN_MINT }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Amount Per Wallet
+                            <span class="badge bg-primary">{{ SPL_TOKEN_AMOUNT }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Token Decimals
+                            <span class="badge bg-primary">{{ SPL_TOKEN_DECIMALS }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Sender Wallet
+                            <span class="badge bg-{% if SENDER_SECRET_KEY %}success{% else %}danger{% endif %}">
+                                {% if SENDER_SECRET_KEY %}Configured{% else %}Not Configured{% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>How Airdrops Work</h6>
+                    <ol>
+                        <li>Create a new airdrop with the token and amount settings</li>
+                        <li>The system will create a transaction for each registered wallet</li>
+                        <li>The sender wallet (configured in environment) sends the tokens</li>
+                        <li>Transaction results are recorded and can be viewed in the details</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb"></i> Tip: Make sure your sender wallet has enough tokens and SOL for fees before starting an airdrop.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Airdrop Modal -->
+<div class="modal fade" id="newAirdropModal" tabindex="-1" aria-labelledby="newAirdropModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newAirdropModalLabel">Start New Airdrop</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('admin_airdrops') }}" method="post" id="newAirdropForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="tokenMint" class="form-label">Token Mint Address</label>
+                        <input type="text" class="form-control" id="tokenMint" name="token_mint" value="{{ SPL_TOKEN_MINT }}" required>
+                        <div class="form-text">The SPL token mint address of the token to distribute.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount Per Wallet</label>
+                        <input type="number" class="form-control" id="amount" name="amount" value="{{ SPL_TOKEN_AMOUNT }}" min="0" step="any" required>
+                        <div class="form-text">The amount of tokens to send to each wallet.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="decimals" class="form-label">Token Decimals</label>
+                        <input type="number" class="form-control" id="decimals" name="decimals" value="{{ SPL_TOKEN_DECIMALS }}" min="0" max="9" required>
+                        <div class="form-text">The number of decimal places for the token.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Notification Message (Optional)</label>
+                        <textarea class="form-control" id="message" name="message" rows="3"></textarea>
+                        <div class="form-text">Optional message to send to users via Telegram.</div>
+                    </div>
+                </form>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Warning:
+                    <ul class="mb-0">
+                        <li>This will send tokens to <strong>all registered wallets</strong>.</li>
+                        <li>Make sure the sender wallet has enough tokens.</li>
+                        <li>This process cannot be stopped once started.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('newAirdropForm').submit();">
+                    Start Airdrop
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Airdrop Details Modal -->
+<div class="modal fade" id="airdropDetailsModal" tabindex="-1" aria-labelledby="airdropDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="airdropDetailsModalLabel">Airdrop Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- This will be populated with AJAX -->
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading airdrop details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load airdrop details when modal is opened
+    const airdropDetailsModal = document.getElementById('airdropDetailsModal');
+    if (airdropDetailsModal) {
+        airdropDetailsModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const airdropId = button.getAttribute('data-airdrop-id');
+            const modalBody = this.querySelector('.modal-body');
+            
+            // Reset content
+            modalBody.innerHTML = `
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading airdrop details...</p>
+                </div>
+            `;
+            
+            // Simulated loading - in a real app, this would be an AJAX call to an API endpoint
+            setTimeout(() => {
+                // This is placeholder content - in a real app, this would be populated with actual data
+                modalBody.innerHTML = `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">Airdrop #${airdropId}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>Token Mint:</strong></div>
+                                <div class="col-md-8">${SPL_TOKEN_MINT}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>Amount Per Wallet:</strong></div>
+                                <div class="col-md-8">${SPL_TOKEN_AMOUNT}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>Token Decimals:</strong></div>
+                                <div class="col-md-8">${SPL_TOKEN_DECIMALS}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>Date:</strong></div>
+                                <div class="col-md-8">${new Date().toLocaleString()}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><strong>Status:</strong></div>
+                                <div class="col-md-8"><span class="badge bg-success">Completed</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>Transactions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Wallet</th>
+                                    <th>Status</th>
+                                    <th>Signature</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Abcd...wxyz</td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                    <td>5KY23...8fRm</td>
+                                    <td>${new Date().toLocaleString()}</td>
+                                </tr>
+                                <tr>
+                                    <td>Efgh...stuv</td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                    <td>9JK45...2qPn</td>
+                                    <td>${new Date().toLocaleString()}</td>
+                                </tr>
+                                <tr>
+                                    <td>Ijkl...qrst</td>
+                                    <td><span class="badge bg-danger">Failed</span></td>
+                                    <td>N/A</td>
+                                    <td>${new Date().toLocaleString()}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }, 1000);
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,299 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings - Admin - Solana Airdrop Bot{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4"><i class="bi bi-gear"></i> Admin Settings</h1>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group mb-4">
+                <a href="#solanaSettings" class="list-group-item list-group-item-action active" data-bs-toggle="list">Solana Settings</a>
+                <a href="#telegramSettings" class="list-group-item list-group-item-action" data-bs-toggle="list">Telegram Bot Settings</a>
+                <a href="#securitySettings" class="list-group-item list-group-item-action" data-bs-toggle="list">Security</a>
+                <a href="#systemInfo" class="list-group-item list-group-item-action" data-bs-toggle="list">System Info</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Solana Settings -->
+                <div class="tab-pane fade show active" id="solanaSettings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Solana Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('admin_update_solana_config') }}">
+                                {{ solana_form.csrf_token }}
+                                
+                                <div class="mb-3">
+                                    {{ solana_form.spl_token_mint.label(class="form-label") }}
+                                    {{ solana_form.spl_token_mint(class="form-control") }}
+                                    <div class="form-text">The SPL token mint address for airdrops.</div>
+                                    {% if solana_form.spl_token_mint.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in solana_form.spl_token_mint.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ solana_form.spl_token_amount.label(class="form-label") }}
+                                    {{ solana_form.spl_token_amount(class="form-control") }}
+                                    <div class="form-text">Default amount of tokens to send per wallet.</div>
+                                    {% if solana_form.spl_token_amount.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in solana_form.spl_token_amount.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ solana_form.spl_token_decimals.label(class="form-label") }}
+                                    {{ solana_form.spl_token_decimals(class="form-control") }}
+                                    <div class="form-text">Number of decimal places for the token.</div>
+                                    {% if solana_form.spl_token_decimals.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in solana_form.spl_token_decimals.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ solana_form.solana_rpc.label(class="form-label") }}
+                                    {{ solana_form.solana_rpc(class="form-control") }}
+                                    <div class="form-text">Solana RPC URL for blockchain connection.</div>
+                                    {% if solana_form.solana_rpc.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in solana_form.solana_rpc.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> Note: These settings will be applied to new airdrops only.
+                                </div>
+                                
+                                <div class="d-grid">
+                                    {{ solana_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Telegram Bot Settings -->
+                <div class="tab-pane fade" id="telegramSettings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Telegram Bot Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('admin_update_telegram_config') }}">
+                                {{ telegram_form.csrf_token }}
+                                
+                                <div class="mb-3">
+                                    {{ telegram_form.bot_username.label(class="form-label") }}
+                                    {{ telegram_form.bot_username(class="form-control") }}
+                                    <div class="form-text">The username of your Telegram bot (e.g., @YourBot).</div>
+                                    {% if telegram_form.bot_username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in telegram_form.bot_username.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ telegram_form.admin_user_ids.label(class="form-label") }}
+                                    {{ telegram_form.admin_user_ids(class="form-control") }}
+                                    <div class="form-text">Comma-separated list of Telegram user IDs that have admin access.</div>
+                                    {% if telegram_form.admin_user_ids.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in telegram_form.admin_user_ids.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> Note: Changing these settings requires restarting the bot to take effect.
+                                </div>
+                                
+                                <div class="d-grid">
+                                    {{ telegram_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Bot Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <span class="badge {% if BOT_TOKEN %}bg-success{% else %}bg-danger{% endif %} p-2">
+                                        <i class="bi {% if BOT_TOKEN %}bi-check-circle{% else %}bi-x-circle{% endif %}"></i>
+                                        {% if BOT_TOKEN %}Running{% else %}Not Running{% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    {% if BOT_TOKEN %}
+                                        <p class="mb-0">Bot is active and responding to messages.</p>
+                                    {% else %}
+                                        <p class="mb-0">Bot is not configured or not running.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if BOT_USERNAME %}
+                                <div class="mt-3">
+                                    <a href="https://t.me/{{ BOT_USERNAME.replace('@', '') }}" class="btn btn-info" target="_blank">
+                                        <i class="bi bi-telegram"></i> Open Bot in Telegram
+                                    </a>
+                                    <button type="button" class="btn btn-outline-secondary" disabled>
+                                        Restart Bot
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="securitySettings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-danger">
+                                <i class="bi bi-shield-exclamation"></i> Warning: These settings affect the security of the application.
+                            </div>
+                            
+                            <h6 class="mb-3">Sender Wallet</h6>
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-2">Status:</div>
+                                    <span class="badge {% if SENDER_SECRET_KEY %}bg-success{% else %}bg-danger{% endif %} p-2">
+                                        {% if SENDER_SECRET_KEY %}Configured{% else %}Not Configured{% endif %}
+                                    </span>
+                                </div>
+                                <div class="form-text mb-3">
+                                    {% if SENDER_SECRET_KEY %}
+                                        A sender wallet is configured and ready to use for airdrops.
+                                    {% else %}
+                                        No sender wallet is configured. Airdrops will not work until a wallet is configured.
+                                    {% endif %}
+                                </div>
+                                <button type="button" class="btn btn-warning" disabled>
+                                    <i class="bi bi-key"></i> Update Sender Wallet
+                                </button>
+                            </div>
+                            
+                            <hr>
+                            
+                            <h6 class="mb-3">Admin Access</h6>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableAdminToken" {% if ENABLE_ADMIN_TOKEN %}checked{% endif %} disabled>
+                                <label class="form-check-label" for="enableAdminToken">Enable Admin Access Token</label>
+                                <div class="form-text">When enabled, the admin API can be accessed using a token.</div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-danger" disabled>
+                                <i class="bi bi-arrow-repeat"></i> Regenerate Admin Token
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Info -->
+                <div class="tab-pane fade" id="systemInfo">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">System Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td width="30%"><strong>Application Version</strong></td>
+                                        <td>1.0.0</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Environment</strong></td>
+                                        <td>{% if DEBUG %}Development{% else %}Production{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Solana Network</strong></td>
+                                        <td>{% if 'mainnet' in SOLANA_RPC %}Mainnet{% else %}Testnet/Devnet{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Database</strong></td>
+                                        <td>{{ 'PostgreSQL' if 'postgresql' in DATABASE_URL else 'SQLite' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Server Time</strong></td>
+                                        <td>{{ now.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="mt-3">
+                                <h6>Environment Variables</h6>
+                                <div class="alert alert-secondary overflow-auto" style="max-height: 200px;">
+                                    <pre class="mb-0"><code>BOT_TOKEN: {% if BOT_TOKEN %}Set{% else %}Not Set{% endif %}
+BOT_USERNAME: {{ BOT_USERNAME }}
+SPL_TOKEN_MINT: {{ SPL_TOKEN_MINT }}
+SPL_TOKEN_AMOUNT: {{ SPL_TOKEN_AMOUNT }}
+SPL_TOKEN_DECIMALS: {{ SPL_TOKEN_DECIMALS }}
+SOLANA_RPC: {{ SOLANA_RPC }}
+SENDER_SECRET_KEY: {% if SENDER_SECRET_KEY %}Set{% else %}Not Set{% endif %}
+DEBUG: {{ DEBUG }}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Handle tab history with URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        // Activate tab based on URL hash
+        const hash = window.location.hash;
+        if (hash) {
+            const tab = document.querySelector(`.list-group-item[href="${hash}"]`);
+            if (tab) {
+                tab.click();
+            }
+        }
+        
+        // Update URL hash when tab changes
+        const tabs = document.querySelectorAll('.list-group-item');
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                history.replaceState(null, null, e.target.getAttribute('href'));
+            });
+        });
+    });
+</script>
+{% endblock %}

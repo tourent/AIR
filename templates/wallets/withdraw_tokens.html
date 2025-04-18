@@ -1,0 +1,120 @@
+{% extends "layout.html" %}
+
+{% block title %}Withdraw Tokens - Solana Airdrop Bot{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Withdraw Tokens from Wallet (with Fee)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> You are withdrawing tokens from:
+                        <div class="address-display my-2">{{ wallet.formatted_address }}</div>
+                        <div class="small">Full address: {{ wallet.address }}</div>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('withdraw_tokens', wallet_id=wallet.id) }}">
+                        {{ form.csrf_token }}
+                        {{ form.wallet_id }}
+                        
+                        <div class="mb-3">
+                            {{ form.token_mint.label(class="form-label") }}
+                            {{ form.token_mint(class="form-control") }}
+                            <div class="form-text">
+                                The SPL token mint address of the token you want to withdraw.
+                            </div>
+                            {% if form.token_mint.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.token_mint.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.amount.label(class="form-label") }}
+                            {{ form.amount(class="form-control") }}
+                            <div class="form-text">
+                                The amount of tokens to withdraw.
+                            </div>
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.amount.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.decimals.label(class="form-label") }}
+                            {{ form.decimals(class="form-control") }}
+                            <div class="form-text">
+                                The number of decimal places for the token.
+                            </div>
+                            {% if form.decimals.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.decimals.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.destination_address.label(class="form-label") }}
+                            {{ form.destination_address(class="form-control") }}
+                            <div class="form-text">
+                                The wallet address to withdraw tokens to.
+                            </div>
+                            {% if form.destination_address.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.destination_address.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.fee_percentage.label(class="form-label") }}
+                            {{ form.fee_percentage(class="form-control") }}
+                            <div class="form-text">
+                                The fee percentage to apply to this withdrawal (0.05 = 5%).
+                            </div>
+                            {% if form.fee_percentage.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.fee_percentage.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Warning:
+                            <ul class="mb-0">
+                                <li>This will withdraw tokens from your wallet.</li>
+                                <li>A fee will be applied to this transaction.</li>
+                                <li>This transaction cannot be reversed once submitted.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('wallets') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Wallets
+                            </a>
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

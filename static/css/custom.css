@@ -1,0 +1,124 @@
+/* Custom styles for Solana Airdrop Bot */
+
+/* Override some Bootstrap variables */
+:root {
+  --primary-color: #00ffbd;
+  --accent-color: #9945ff;
+  --solana-gradient: linear-gradient(45deg, #00ffbd, #9945ff);
+}
+
+/* Custom card styling for wallet cards */
+.wallet-card {
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--bs-primary);
+}
+
+.wallet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard stat cards */
+.stat-card {
+  border-radius: 10px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Solana themed elements */
+.solana-gradient-text {
+  background: var(--solana-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.solana-gradient-bg {
+  background: var(--solana-gradient);
+}
+
+/* Token amount styling */
+.token-amount {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* Custom navbar styling */
+.navbar-brand img {
+  margin-right: 10px;
+}
+
+/* Footer styling */
+.footer {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Address display */
+.address-display {
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: 5px;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* Custom badges */
+.badge-verified {
+  background-color: var(--bs-success);
+  color: white;
+}
+
+.badge-pending {
+  background-color: var(--bs-warning);
+  color: white;
+}
+
+/* Progress bar animation */
+@keyframes progress-bar-stripes {
+  from { background-position: 1rem 0; }
+  to { background-position: 0 0; }
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Transaction status indicators */
+.tx-status-success {
+  color: var(--bs-success);
+}
+
+.tx-status-failed {
+  color: var(--bs-danger);
+}
+
+.tx-status-pending {
+  color: var(--bs-warning);
+}
+
+/* Card background with subtle Solana branding */
+.solana-card-bg {
+  background-color: rgba(153, 69, 255, 0.05);
+  border: 1px solid rgba(153, 69, 255, 0.1);
+}
+
+/* Logo animation */
+.navbar-brand img {
+  transition: transform 0.5s ease;
+}
+
+.navbar-brand:hover img {
+  transform: rotate(15deg);
+}

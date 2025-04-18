@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Solana Airdrop - Admin: Airdrop Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin_airdrops') }}">Airdrops</a></li>
+                <li class="breadcrumb-item active">Airdrop #{{ airdrop.id }}</li>
+            </ol>
+        </nav>
+        
+        <h1>Airdrop Details</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Airdrop #{{ airdrop.id }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Date:</strong> {{ airdrop.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        <p><strong>Created by:</strong> {{ airdrop.started_by }}</p>
+                        <p><strong>Token Amount (per wallet):</strong> {{ airdrop.token_amount }}</p>
+                        <p><strong>Token Decimals:</strong> {{ airdrop.token_decimals }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Token Mint:</strong></p>
+                        <p class="token-address">{{ airdrop.token_mint }}</p>
+                        
+                        <p class="mt-3"><strong>Processed Transactions:</strong></p>
+                        <div class="progress mb-2" style="height: 25px;">
+                            {% set success_rate = airdrop.success_count / transactions|length * 100 if transactions|length > 0 else 0 %}
+                            {% set failure_rate = airdrop.failure_count / transactions|length * 100 if transactions|length > 0 else 0 %}
+                            {% set pending_rate = airdrop.pending_count / transactions|length * 100 if transactions|length > 0 else 0 %}
+                            
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ success_rate }}%;">
+                                {{ airdrop.success_count }}
+                            </div>
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ failure_rate }}%;">
+                                {{ airdrop.failure_count }}
+                            </div>
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ pending_rate }}%;">
+                                {{ airdrop.pending_count }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Success: {{ airdrop.success_count }}</span>
+                            <span>Failed: {{ airdrop.failure_count }}</span>
+                            <span>Pending: {{ airdrop.pending_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if airdrop.pending_count > 0 %}
+                <div class="mt-4">
+                    <form action="{{ url_for('api_process_airdrop', airdrop_id=airdrop.id) }}" method="post" id="processForm">
+                        <button type="submit" class="btn btn-primary" id="processBtn">
+                            Continue Processing
+                        </button>
+                        <span class="ms-2 d-none" id="processingIndicator">
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            Processing...
+                        </span>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Transactions</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="success">Success</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="failed">Failed</button>
+                    <button type="button" class="btn btn-sm btn-outline-warning filter-btn" data-filter="pending">Pending</button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                <div class="table-responsive">
+                    <table class="table table-striped" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Wallet Address</th>
+                                <th>Status</th>
+                                <th>Transaction Signature</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                            <tr class="tx-row tx-{{ tx.status }}">
+                                <td>{{ tx.id }}</td>
+                                <td class="wallet-address">{{ tx.wallet_address }}</td>
+                                <td>
+                                    {% if tx.status == 'success' %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% elif tx.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tx.transaction_signature %}
+                                    <a href="https://explorer.solana.com/tx/{{ tx.transaction_signature }}" target="_blank" class="text-truncate d-inline-block" style="max-width: 150px;">
+                                        {{ tx.transaction_signature }}
+                                    </a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tx.completed_at %}
+                                    {{ tx.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if tx.error_message %}
+                            <tr class="tx-row tx-{{ tx.status }} error-details">
+                                <td colspan="5" class="bg-light text-danger">
+                                    <strong>Error:</strong> {{ tx.error_message }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    No transactions found for this airdrop.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Transaction filtering
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Get filter value
+            const filter = this.getAttribute('data-filter');
+            
+            // Filter table rows
+            document.querySelectorAll('.tx-row').forEach(row => {
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'success' && row.classList.contains('tx-success')) {
+                    row.style.display = '';
+                } else if (filter === 'failed' && row.classList.contains('tx-failed')) {
+                    row.style.display = '';
+                } else if (filter === 'pending' && row.classList.contains('tx-pending')) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Process form submission
+    const processForm = document.getElementById('processForm');
+    if (processForm) {
+        processForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const processBtn = document.getElementById('processBtn');
+            const processingIndicator = document.getElementById('processingIndicator');
+            
+            // Disable button and show loading indicator
+            processBtn.disabled = true;
+            processingIndicator.classList.remove('d-none');
+            
+            // Submit the form via AJAX
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    // Reload the page after a delay to see updated progress
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    alert('Error: ' + data.message);
+                    processBtn.disabled = false;
+                    processingIndicator.classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+                processBtn.disabled = false;
+                processingIndicator.classList.add('d-none');
+            });
+        });
+    }
+</script>
+{% endblock %}

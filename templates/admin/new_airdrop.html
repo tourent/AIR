@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Solana Airdrop - Admin: New Airdrop{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1>Create New Airdrop</h1>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Airdrop Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_new_airdrop') }}">
+                    <div class="mb-3">
+                        <label for="token_mint" class="form-label">Token Mint Address</label>
+                        <input type="text" class="form-control" id="token_mint" name="token_mint" required
+                               value="{{ config.SPL_TOKEN_MINT|default('') }}"
+                               placeholder="e.g., 7d7jZLzHHefeSDqJj9EJhTrA1Ujmsb3saxs5vPdtpump">
+                        <div class="form-text">Enter the SPL token mint address for the token you want to distribute.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="token_amount" class="form-label">Token Amount (per wallet)</label>
+                        <input type="number" class="form-control" id="token_amount" name="token_amount" required
+                               value="{{ config.SPL_TOKEN_AMOUNT|default(10) }}" min="0.000001" step="0.000001">
+                        <div class="form-text">Amount of tokens to send to each registered wallet.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="token_decimals" class="form-label">Token Decimals</label>
+                        <input type="number" class="form-control" id="token_decimals" name="token_decimals" required
+                               value="{{ config.SPL_TOKEN_DECIMALS|default(0) }}" min="0" max="9" step="1">
+                        <div class="form-text">Number of decimal places for the token (0-9). Most tokens use 9 decimals.</div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading">Airdrop Summary</h6>
+                        <p>
+                            This will trigger an airdrop of 
+                            <strong id="summaryAmount">{{ config.SPL_TOKEN_AMOUNT|default(10) }}</strong> 
+                            tokens to each registered wallet.
+                        </p>
+                        <p class="mb-0">
+                            Total wallets: <strong>{{ wallet_count|default(0) }}</strong><br>
+                            Total tokens required: <strong id="summaryTotal">{{ (wallet_count|default(0) * config.SPL_TOKEN_AMOUNT|default(10))|round(6) }}</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmCheck" required>
+                        <label class="form-check-label" for="confirmCheck">
+                            I confirm that the sender wallet has sufficient tokens and SOL for transaction fees.
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Start Airdrop</button>
+                        <a href="{{ url_for('admin_airdrops') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Important Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> Once an airdrop is started, it cannot be canceled.
+                </div>
+                
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>The sender wallet must have sufficient tokens to distribute.</li>
+                    <li>The sender wallet must have sufficient SOL to pay for transaction fees.</li>
+                    <li>Each transaction requires approximately 0.000005 SOL in fees.</li>
+                    <li>Creating Associated Token Accounts (if needed) requires additional SOL.</li>
+                </ul>
+                
+                <p><strong>Processing:</strong></p>
+                <p>Airdrops are processed in the background. You can check the progress on the airdrop details page.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Update the summary when token amount changes
+    document.getElementById('token_amount').addEventListener('input', updateSummary);
+    
+    function updateSummary() {
+        const tokenAmount = parseFloat(document.getElementById('token_amount').value) || 0;
+        const walletCount = {{ wallet_count|default(0) }};
+        const totalTokens = tokenAmount * walletCount;
+        
+        document.getElementById('summaryAmount').textContent = tokenAmount.toFixed(6);
+        document.getElementById('summaryTotal').textContent = totalTokens.toFixed(6);
+    }
+    
+    // Simple address validation
+    document.getElementById('token_mint').addEventListener('input', function() {
+        const address = this.value.trim();
+        
+        // Basic format check (32-44 alphanumeric characters, base58 encoding)
+        const isValidFormat = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+        
+        if (!isValidFormat) {
+            this.setCustomValidity('Please enter a valid Solana token mint address.');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+</script>
+{% endblock %}
